@@ -10,6 +10,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.tnc.security.ApplicationUserRole.*;
 
@@ -40,7 +43,16 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginPage("/login").permitAll()
                 .defaultSuccessUrl("/courses", true)
                 .and()
-                .rememberMe();  //remember the session for 2 weeks (default)
+                .rememberMe().tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))  //remember the session for 2 weeks (default)
+                .key("somethingverysecured")
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")).clearAuthentication(true) //if enable csrf, you must delete or comment this line, and use POST
+                .clearAuthentication(true)
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "remember-me")
+                .logoutSuccessUrl("/login");
     }
 
     @Override
